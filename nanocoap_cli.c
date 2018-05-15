@@ -172,14 +172,14 @@ int nanocoap_cli_cmd(int argc, char **argv)
         coap_opt_add_string(&pkt, COAP_OPT_URI_PATH, argv[4], '/');
         if (argc == 6) {
             coap_opt_add_uint(&pkt, COAP_OPT_CONTENT_FORMAT, COAP_FORMAT_TEXT);
-            len = coap_opt_finish(&pkt, true);
+            len = coap_opt_finish(&pkt, COAP_OPT_FINISH_PAYLOAD);
             
             pkt.payload_len = strlen(argv[5]);
             memcpy(pkt.payload, argv[5], pkt.payload_len);
             len += pkt.payload_len;
         }
         else {
-            len = coap_opt_finish(&pkt, false);
+            len = coap_opt_finish(&pkt, COAP_OPT_FINISH_NONE);
         }
 
         printf("nanocoap_cli: sending msg ID %u, %u bytes\n", coap_get_id(&pkt),
