@@ -31,9 +31,10 @@
 #include "debug.h"
 
 /* From Koen Zandberg's PR #9086 */
-ssize_t nanocoap_request(coap_pkt_t *pkt, sock_udp_ep_t *remote, size_t len)
+ssize_t nanocoap_request(coap_pkt_t *pkt, sock_udp_ep_t *local, sock_udp_ep_t *remote, size_t len)
 {
     ssize_t res;
+    size_t pdu_len = (pkt->payload - (uint8_t *)pkt->hdr) + pkt->payload_len;
     uint8_t *buf = (uint8_t*)pkt->hdr;
     sock_udp_t sock;
 
@@ -41,7 +42,7 @@ ssize_t nanocoap_request(coap_pkt_t *pkt, sock_udp_ep_t *remote, size_t len)
         remote->port = COAP_PORT;
     }
 
-    res = sock_udp_create(&sock, NULL, remote, 0);
+    res = sock_udp_create(&sock, local, remote, 0);
     if (res < 0) {
         return res;
     }
@@ -49,16 +50,10 @@ ssize_t nanocoap_request(coap_pkt_t *pkt, sock_udp_ep_t *remote, size_t len)
     /* TODO: timeout random between between ACK_TIMEOUT and (ACK_TIMEOUT *
      * ACK_RANDOM_FACTOR) */
     uint32_t timeout = COAP_ACK_TIMEOUT * (1000000U);
-    int tries = 0;
-    while (tries++ < COAP_MAX_RETRANSMIT) {
-        if (!tries) {
-            DEBUG("nanocoap: maximum retries reached.\n");
-            res = -ETIMEDOUT;
-            goto out;
-        }
+    int tries = COAP_MAX_RETRANSMIT + 1;
+    while (tries--) {
 
-        size_t reqlen = (pkt->payload - (uint8_t *)pkt->hdr) + pkt->payload_len;
-        res = sock_udp_send(&sock, buf, reqlen, NULL);
+        res = sock_udp_send(&sock, buf, pdu_len, NULL);
         if (res <= 0) {
             DEBUG("nanocoap: error sending coap request\n");
             goto out;
@@ -82,6 +77,11 @@ ssize_t nanocoap_request(coap_pkt_t *pkt, sock_udp_ep_t *remote, size_t len)
             }
             break;
         }
+    }
+    if (!tries) {
+        DEBUG("nanocoap: maximum retries reached.\n");
+        res = -ETIMEDOUT;
+        goto out;
     }
 
 out:
@@ -134,7 +134,7 @@ static ssize_t _send(coap_pkt_t *pkt, size_t len, char *addr_str, char *port_str
         return 0;
     }
 
-    return nanocoap_request(pkt, &remote, len);
+    return nanocoap_request(pkt, NULL, &remote, len);
 }
 
 int nanocoap_cli_cmd(int argc, char **argv)
