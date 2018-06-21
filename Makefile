@@ -1,7 +1,7 @@
 # Default Makefile, for host native GNRC-based networking
 
 # name of your application
-APPLICATION = nanocoap_example
+APPLICATION = nanocoap_cli
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
@@ -29,7 +29,12 @@ USEMODULE += auto_init_gnrc_netif
 USEMODULE += gnrc_ipv6_default
 USEMODULE += gnrc_udp
 USEMODULE += gnrc_sock_udp
+
 USEMODULE += nanocoap
+#USEMODULE += nanocoap_options_sort
+# use manual sorting
+#CFLAGS += -DCOAP_OPT_FINISH_DEFAULTS=COAP_OPT_FINISH_NONE
+
 # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
 

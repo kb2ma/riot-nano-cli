@@ -23,9 +23,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "net/nanocoap.h"
+#include "net/nanocoap_opt_sort.h"
 #include "net/sock/udp.h"
 #include "od.h"
 #include "fmt.h"
+#include "xtimer.h"
 
 #define ENABLE_DEBUG (0)
 #include "debug.h"
@@ -166,14 +168,24 @@ int nanocoap_cli_cmd(int argc, char **argv)
 
     /* parse options */
     if (argc == 5 || argc == 6) {
+        uint32_t elapsed = xtimer_now_usec();
         ssize_t hdrlen = coap_build_hdr(pkt.hdr, COAP_TYPE_CON, &token[0], 2,
                                         code_pos+1, 1);
         coap_pkt_init(&pkt, &buf[0], buflen, hdrlen);
         coap_opt_add_string(&pkt, COAP_OPT_URI_PATH, argv[4], '/');
         if (argc == 6) {
             coap_opt_add_uint(&pkt, COAP_OPT_CONTENT_FORMAT, COAP_FORMAT_TEXT);
+            /* automatic sorting */
             len = coap_opt_finish(&pkt, COAP_OPT_FINISH_PAYLOAD);
-            
+            /* manual sorting */
+            /*
+            unsigned flags = COAP_OPT_FINISH_PAYLOAD;
+            if (!coap_opt_sorted(&pkt)) {
+                flags |= COAP_OPT_FINISH_SORT;
+            }
+            len = coap_opt_finish(&pkt, flags);
+            */
+
             pkt.payload_len = strlen(argv[5]);
             memcpy(pkt.payload, argv[5], pkt.payload_len);
             len += pkt.payload_len;
@@ -181,9 +193,10 @@ int nanocoap_cli_cmd(int argc, char **argv)
         else {
             len = coap_opt_finish(&pkt, COAP_OPT_FINISH_NONE);
         }
+        elapsed = xtimer_now_usec() - elapsed;
 
-        printf("nanocoap_cli: sending msg ID %u, %u bytes\n", coap_get_id(&pkt),
-               (unsigned) len);
+        printf("nanocoap_cli: sending msg ID %u, %u bytes, built in %" PRIu32 " usec\n",
+                coap_get_id(&pkt), (unsigned) len, elapsed);
 
         ssize_t res = _send(&pkt, buflen, argv[2], argv[3]);
         if (res < 0) {

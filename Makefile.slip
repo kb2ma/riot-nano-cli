@@ -2,7 +2,7 @@
 # Assumes use of SAMR21 board
 
 # name of your application
-APPLICATION = nancoap_example
+APPLICATION = nanocoap_cli
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= samr21-xpro
@@ -44,7 +44,12 @@ USEMODULE += auto_init_gnrc_netif
 # Specify the mandatory networking modules
 USEMODULE += gnrc_udp
 USEMODULE += gnrc_sock_udp
+
 USEMODULE += nanocoap
+#USEMODULE += nanocoap_options_sort
+# use manual sorting
+#CFLAGS += -DCOAP_OPT_FINISH_DEFAULTS=COAP_OPT_FINISH_NONE
+
 # Add a routing protocol
 USEMODULE += gnrc_rpl
 
