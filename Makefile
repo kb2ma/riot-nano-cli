@@ -32,8 +32,6 @@ USEMODULE += gnrc_sock_udp
 
 USEMODULE += nanocoap
 #USEMODULE += nanocoap_options_sort
-# use manual sorting
-#CFLAGS += -DCOAP_OPT_FINISH_DEFAULTS=COAP_OPT_FINISH_NONE
 
 # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo

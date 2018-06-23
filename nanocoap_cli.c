@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "net/nanocoap.h"
-#include "net/nanocoap_opt_sort.h"
 #include "net/sock/udp.h"
 #include "od.h"
 #include "fmt.h"
@@ -175,16 +174,7 @@ int nanocoap_cli_cmd(int argc, char **argv)
         coap_opt_add_string(&pkt, COAP_OPT_URI_PATH, argv[4], '/');
         if (argc == 6) {
             coap_opt_add_uint(&pkt, COAP_OPT_CONTENT_FORMAT, COAP_FORMAT_TEXT);
-            /* automatic sorting */
             len = coap_opt_finish(&pkt, COAP_OPT_FINISH_PAYLOAD);
-            /* manual sorting */
-            /*
-            unsigned flags = COAP_OPT_FINISH_PAYLOAD;
-            if (!coap_opt_sorted(&pkt)) {
-                flags |= COAP_OPT_FINISH_SORT;
-            }
-            len = coap_opt_finish(&pkt, flags);
-            */
 
             pkt.payload_len = strlen(argv[5]);
             memcpy(pkt.payload, argv[5], pkt.payload_len);
