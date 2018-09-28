@@ -46,7 +46,6 @@ USEMODULE += gnrc_udp
 USEMODULE += gnrc_sock_udp
 
 USEMODULE += nanocoap
-#USEMODULE += nanocoap_options_sort
 
 # Add a routing protocol
 USEMODULE += gnrc_rpl
